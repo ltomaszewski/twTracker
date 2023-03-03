@@ -72,16 +72,28 @@ fs.readdir(dirPath, (err, files) => {
         }
   
         if (stats.isDirectory()) {
-            if (filePath.toLowerCase().endsWith("d")) {
+            if (filePath.toLowerCase().endsWith("d") || filePath.toLowerCase().endsWith("60") || filePath.toLowerCase().endsWith("240")) {
               const realm = new Realm({ schema: [CandlestickSchema], shouldCompactOnLaunch: () => true , path: realmFilePath});
               const prices = realm.objects('Candlestick').sorted('time'); 
   
               let data;
-              data = prices.map((price) => ({
-                'item_id' : price.time,
-                'timestamp' : formatDateDay(price.time),
-                'target_value' : price.close
-              }));
+              if (filePath.toLowerCase().endsWith("60") || filePath.toLowerCase().endsWith("240")) {
+                data = prices.map((price) => ({
+                  'Date' : formatDate(price.time),
+                  'Low' : price.min,
+                  'High' : price.max,
+                  'Close' : price.close,
+                  'Open' : price.open
+                  }));
+              } else {
+                 data = prices.map((price) => ({
+                  'Date' : formatDateDay(price.time),
+                  'Low' : price.min,
+                  'High' : price.max,
+                  'Close' : price.close,
+                  'Open' : price.open
+                }));
+              }
               console.log(`Realm ${realmFilePath} size: ${data.length}`);
 
               console.log();
@@ -104,6 +116,18 @@ fs.readdir(dirPath, (err, files) => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  function formatDate(timestamp) {
+    const date = new Date(timestamp * 1000);
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    const hours = ('0' + date.getHours()).slice(-2);
+    const minutes = ('0' + date.getMinutes()).slice(-2);
+    const seconds = ('0' + date.getSeconds()).slice(-2);
+    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return formattedDate;
   }
   
   function formatCsv(data) {
