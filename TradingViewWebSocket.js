@@ -22,7 +22,6 @@ export class TradingViewWebSocket {
         this.source = source
         this.symbol = symbol
         this.timeframe = timeframe
-        this.realm = new Realm({ schema: [CandlestickSchema], shouldCompactOnLaunch: () => true , path: `database/${source}_${symbol}_${timeframe}/${source}_${symbol}_${timeframe}.realm`});
         this.client = new TradingView.Client()
         this.chart = new this.client.Session.Chart();
     }
@@ -50,7 +49,9 @@ export class TradingViewWebSocket {
     }
 
     saveData() {
-        this.realm = new Realm({ schema: [CandlestickSchema], shouldCompactOnLaunch: () => true , path: `database/${this.source}_${this.symbol}_${this.timeframe}/${this.source}_${this.symbol}_${this.timeframe}.realm`});
+        this.realm = new Realm({ schema: [CandlestickSchema], shouldCompactOnLaunch: () => false , path: `database/${this.source}_${this.symbol}_${this.timeframe}/${this.source}_${this.symbol}_${this.timeframe}.realm`});
+                        this.realm.write(() => {
+
         while (this.messageQueue.length > 0) {
             const { message } = this.messageQueue.shift();
         
@@ -59,7 +60,6 @@ export class TradingViewWebSocket {
             if (this.startedSavingData == false) {
                 this.startedSavingData = true
                 console.log("Start saving data")
-                this.realm.write(() => {
                     for (var i = 0; i < message.length; i++) {
                         let entry = message[i]
                         this.realm.create(`Candlestick`, {
@@ -72,9 +72,7 @@ export class TradingViewWebSocket {
                         }, true)
                     }
                     console.log("Data saved")
-                });
             } else {
-                this.realm.write(() => {
                     let entry = message[0]
                     this.realm.create(`Candlestick`, {
                         time: entry.time,
@@ -84,9 +82,9 @@ export class TradingViewWebSocket {
                         min: entry.min,
                         volume: entry.volume
                     }, true)
-                });
             }
           }
+                          });
         this.realm.close()
     }
 }
