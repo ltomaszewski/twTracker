@@ -79,19 +79,15 @@ fs.readdir(dirPath, (err, files) => {
               let data;
               if (filePath.toLowerCase().endsWith("60") || filePath.toLowerCase().endsWith("240")) {
                 data = prices.map((price) => ({
-                  'Date' : formatDate(price.time),
-                  'Low' : price.min,
-                  'High' : price.max,
-                  'Close' : price.close,
-                  'Open' : price.open
+                  'item_id' : price.time,
+                  'timestamp' : formatDate(price.time),
+                  'target_value' : price.close
                   }));
               } else {
                  data = prices.map((price) => ({
-                  'Date' : formatDateDay(price.time),
-                  'Low' : price.min,
-                  'High' : price.max,
-                  'Close' : price.close,
-                  'Open' : price.open
+                  'item_id' : price.time,
+                  'timestamp' : formatDateDay(price.time),
+                  'target_value' : price.close
                 }));
               }
               console.log(`Realm ${realmFilePath} size: ${data.length}`);
